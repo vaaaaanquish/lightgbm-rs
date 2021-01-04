@@ -1,0 +1,16 @@
+[package]
+name = "lightgbm-sys"
+version = "0.1.0"
+authors = ["vaaaaanquish <6syun9@gmail.com>"]
+build = "build.rs"
+license = "MIT"
+repository = "https://github.com/vaaaaanquish/LightGBM"
+description = "Native bindings to the LightGBM library"
+readme = "README.md"
+
+[dependencies]
+libc = "0.2.81"
+
+[build-dependencies]
+bindgen = "0.56.0"
+cmake = "0.1"
