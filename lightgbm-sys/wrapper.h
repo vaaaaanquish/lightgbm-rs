@@ -1,1 +1,1 @@
-#include <lightgbm/c_api.h>
+#include <LightGBM/c_api.h>

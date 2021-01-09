@@ -9,3 +9,4 @@ readme = "README.md"
 
 [dependencies]
 lightgbm-sys = { path = "lightgbm-sys" }
+libc = "0.2.81"

@@ -15,7 +15,10 @@ docker run -it -v $PWD:/app rust bash
 
 ```
 apt update
-apt install -y cmake libclang-dev libc++-dev
+apt install -y cmake libclang-dev libc++-dev gcc-multilib
 cd app
 cargo build
 ```
+
+LightGBM C API doc
+https://lightgbm.readthedocs.io/en/latest/C-API.html

@@ -11,3 +11,6 @@ Cargo.lock
 
 # lightgbm-sys build target
 lightgbm-sys/target
+
+# example
+examples/target
