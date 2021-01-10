@@ -7,7 +7,7 @@ license = "MIT"
 repository = "https://github.com/vaaaaanquish/LightGBM"
 description = "Native bindings to the LightGBM library"
 readme = "README.md"
-exclude = ["build/**/*.o", "build/**/*.bin", "build/**/*.rlib"]
+exclude = ["README.md", ".gitlab-ci.yml", ".hgeol", ".gitignore", ".appveyor.yml", ".coveralls.yml", ".travis.yml", ".github", ".gitmodules", ".nuget", "**/*.md", "lightgbm/compute/doc", "lightgbm/compute/example", "lightgbm/compute/index.html", "lightgbm/compute/perf", "lightgbm/compute/test", "lightgbm/eigen/debug", "lightgbm/eigen/demos", "lightgbm/eigen/doc", "lightgbm/eigen/failtest", "lightgbm/eigen/test", "lightgbm/examples", "lightgbm/external_libs/fast_double_parser/benchmarks", "lightgbm/external_libs/fmt/doc", "lightgbm/external_libs/fmt/test"]
 
 [dependencies]
 libc = "0.2.81"
