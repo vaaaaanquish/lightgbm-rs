@@ -7,7 +7,7 @@ license = "MIT"
 repository = "https://github.com/vaaaaanquish/LightGBM"
 description = "Native bindings to the LightGBM library"
 readme = "README.md"
-exclude = ["lightgbm", "build/**/*.o"]
+exclude = ["lightgbm/**/*", "build/**/*.o"]
 include = ["lightgbm/compute", "lightgbm/eigen", "lightgbm/external_libs", "lightgbm/include", "lightgbm/src", "lightgbm/swig", "lightgbm/windows", "lightgbm/CMakeIntegratedOpenCL.cmake", "lightgbm/CMakeLists.txt"]
 
 [dependencies]
