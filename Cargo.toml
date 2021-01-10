@@ -6,6 +6,7 @@ license = "MIT"
 repository = "https://github.com/vaaaaanquish/LightGBM"
 description = "Machine learning using LightGBM"
 readme = "README.md"
+exclude = [".gitignore", ".gitmodules", "examples", "lightgbm-sys"]
 
 [dependencies]
 lightgbm-sys = "0.1.0"
