@@ -7,7 +7,7 @@ license = "MIT"
 repository = "https://github.com/vaaaaanquish/LightGBM"
 description = "Native bindings to the LightGBM library"
 readme = "README.md"
-exclude = ["build/**/*.o"]
+exclude = ["build/**/*.o", "build/**/*.bin"]
 
 [dependencies]
 libc = "0.2.81"
