@@ -2,6 +2,9 @@
 LightGBM Rust binding
 
 
+Now: Done is better than perfect.
+
+
 # develop
 
 ```
