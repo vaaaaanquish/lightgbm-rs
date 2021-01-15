@@ -13,4 +13,5 @@ Cargo.lock
 lightgbm-sys/target
 
 # example
-examples/target
+examples/binary_classification/target/
+examples/multiclass_classification/target/
