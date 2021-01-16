@@ -1,5 +1,6 @@
 extern crate lightgbm_sys;
 extern crate libc;
+extern crate serde_json;
 
 #[macro_use]
 macro_rules! lgbm_call {

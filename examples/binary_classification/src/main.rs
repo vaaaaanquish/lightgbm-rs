@@ -1,36 +1,44 @@
 extern crate lightgbm;
 extern crate csv;
+extern crate serde_json;
 extern crate itertools;
 
 use itertools::zip;
 use lightgbm::{Dataset, Booster};
+use serde_json::json;
+
+
+fn load_file(file_path: &str) -> (Vec<Vec<f64>>, Vec<f32>) {
+    let rdr = csv::ReaderBuilder::new().has_headers(false).delimiter(b'\t').from_path(file_path);
+    let mut labels: Vec<f32> = Vec::new();
+    let mut features: Vec<Vec<f64>> = Vec::new();
+    for result in rdr.unwrap().records() {
+        let record = result.unwrap();
+        let label = record[0].parse::<f32>().unwrap();
+        let feature: Vec<f64> = record.iter().map(|x| x.parse::<f64>().unwrap()).collect::<Vec<f64>>()[1..].to_vec();
+        labels.push(label);
+        features.push(feature);
+    }
+    (features, labels)
+}
+
 
 fn main() -> std::io::Result<()> {
-    let mut train_rdr = csv::ReaderBuilder::new().has_headers(false).delimiter(b'\t').from_path("../../lightgbm-sys/lightgbm/examples/binary_classification/binary.train")?;
-    let mut train_labels: Vec<f32> = Vec::new();
-    let mut train_feature: Vec<Vec<f64>> = Vec::new();
-    for result in train_rdr.records() {
-        let record = result?;
-        let label = record[0].parse::<f32>().unwrap();
-        let feature: Vec<f64> = record.iter().map(|x| x.parse::<f64>().unwrap()).collect::<Vec<f64>>()[1..].to_vec();
-        train_labels.push(label);
-        train_feature.push(feature);
-    }
-    let train_dataset = Dataset::from_mat(train_feature, train_labels).unwrap();
+    let (train_features, train_labels) = load_file("../../lightgbm-sys/lightgbm/examples/binary_classification/binary.train");
+    let (test_features, test_labels) = load_file("../../lightgbm-sys/lightgbm/examples/binary_classification/binary.test");
+    let train_dataset = Dataset::from_mat(train_features, train_labels).unwrap();
 
-    let mut rdr = csv::ReaderBuilder::new().has_headers(false).delimiter(b'\t').from_path("../../lightgbm-sys/lightgbm/examples/binary_classification/binary.test")?;
-    let mut test_labels: Vec<f32> = Vec::new();
-    let mut test_feature: Vec<Vec<f64>> = Vec::new();
-    for result in rdr.records() {
-        let record = result?;
-        let label = record[0].parse::<f32>().unwrap();
-        let feature: Vec<f64> = record.iter().map(|x| x.parse::<f64>().unwrap()).collect::<Vec<f64>>()[1..].to_vec();
-        test_labels.push(label);
-        test_feature.push(feature);
-    }
+    let params = json!{
+        {
+            "num_iterations": 100,
+            "objective": "binary",
+            "metric": "auc"
+        }
+    };
 
-    let booster = Booster::train(train_dataset, "objective=binary metric=auc".to_string()).unwrap();
-    let result = booster.predict(test_feature).unwrap();
+    let booster = Booster::train(train_dataset, &params).unwrap();
+    let result = booster.predict(test_features).unwrap();
+
 
     let mut tp = 0;
     for (label, pred) in zip(&test_labels, &result){
