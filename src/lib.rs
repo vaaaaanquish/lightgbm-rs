@@ -1,5 +1,14 @@
 extern crate lightgbm_sys;
 extern crate libc;
+extern crate serde_json;
+
+#[macro_use]
+macro_rules! lgbm_call {
+    ($x:expr) => {
+        LGBMError::check_return_value(unsafe { $x })
+    };
+}
+
 
 mod error;
 pub use error::{LGBMError,LGBMResult};
