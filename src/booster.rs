@@ -92,7 +92,12 @@ impl Booster {
     ///                vec![0.7, 0.4, 0.5],
     ///                vec![0.1, 0.7, 1.0]];
     /// ```
-    pub fn predict(&self, data: Vec<Vec<f64>>) -> LGBMResult<Vec<f64>> {
+    ///
+    /// Output data example
+    /// ```
+    /// let output = vec![vec![1.0, 0.109, 0.433]];
+    /// ```
+    pub fn predict(&self, data: Vec<Vec<f64>>) -> LGBMResult<Vec<Vec<f64>>> {
         let data_length = data.len();
         let feature_length = data[0].len();
         let params = CString::new("").unwrap();
@@ -116,7 +121,15 @@ impl Booster {
                 out_result.as_ptr() as *mut c_double
             )
         )?;
-        Ok(out_result)
+
+        // reshape for multiclass [1,2,3,4,5,6] -> [[1,2,3], [4,5,6]]  # 3 class
+        let reshaped_output;
+        if self.num_class > 1{
+            reshaped_output = out_result.chunks(self.num_class as usize).map(|x| x.to_vec()).collect();
+        } else {
+            reshaped_output = vec![out_result];
+        }
+        Ok(reshaped_output)
     }
 }
 
@@ -151,7 +164,7 @@ mod tests {
         let feature = vec![vec![0.5; 28], vec![0.0; 28], vec![0.9; 28]];
         let result = bst.predict(feature).unwrap();
         let mut normalized_result = Vec::new();
-        for r in result{
+        for r in result[0]{
             if r > 0.5{
                 normalized_result.push(1);
             } else {

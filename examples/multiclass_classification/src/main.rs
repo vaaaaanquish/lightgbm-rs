@@ -23,17 +23,35 @@ fn load_file(file_path: &str) -> (Vec<Vec<f64>>, Vec<f32>) {
     (features, labels)
 }
 
+fn argmax<T: PartialOrd>(xs: &[T]) -> usize {
+    if xs.len() == 1 {
+        0
+    } else {
+        let mut maxval = &xs[0];
+        let mut max_ixs: Vec<usize> = vec![0];
+        for (i, x) in xs.iter().enumerate().skip(1) {
+            if x > maxval {
+                maxval = x;
+                max_ixs = vec![i];
+            } else if x == maxval {
+                max_ixs.push(i);
+            }
+        }
+        max_ixs[0]
+    }
+}
 
 fn main() -> std::io::Result<()> {
-    let (train_features, train_labels) = load_file("../../lightgbm-sys/lightgbm/examples/binary_classification/binary.train");
-    let (test_features, test_labels) = load_file("../../lightgbm-sys/lightgbm/examples/binary_classification/binary.test");
+    let (train_features, train_labels) = load_file("../../lightgbm-sys/lightgbm/examples/multiclass_classification/multiclass.train");
+    let (test_features, test_labels) = load_file("../../lightgbm-sys/lightgbm/examples/multiclass_classification/multiclass.test");
     let train_dataset = Dataset::from_mat(train_features, train_labels).unwrap();
 
     let params = json!{
         {
             "num_iterations": 100,
-            "objective": "binary",
-            "metric": "auc"
+            "objective": "multiclass",
+            "metric": "multi_logloss",
+            "num_class": 5,
         }
     };
 
@@ -42,14 +60,13 @@ fn main() -> std::io::Result<()> {
 
 
     let mut tp = 0;
-    for (label, pred) in zip(&test_labels, &result[0]){
-        if label == &(1 as f32) && pred > &(0.5 as f64) {
-            tp = tp + 1;
-        } else if label == &(0 as f32) && pred <= &(0.5 as f64) {
+    for (label, pred) in zip(&test_labels, &result){
+        let argmax_pred = argmax(&pred);
+        if *label == argmax_pred as f32 {
             tp = tp + 1;
         }
-        println!("{}, {}", label, pred)
+        println!("{}, {}, {:?}", label, argmax_pred, &pred);
     }
-    println!("{} / {}", &tp, result[0].len());
+    println!("{} / {}", &tp, result.len());
     Ok(())
 }
