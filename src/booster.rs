@@ -13,13 +13,13 @@ use super::{LGBMResult, Dataset, LGBMError};
 /// Core model in LightGBM, containing functions for training, evaluating and predicting.
 pub struct Booster {
     pub(super) handle: lightgbm_sys::BoosterHandle,
-    num_classes: i64
+    num_class: i64
 }
 
 
 impl Booster {
-    fn new(handle: lightgbm_sys::BoosterHandle, num_classes: i64) -> LGBMResult<Self> {
-        Ok(Booster{handle, num_classes})
+    fn new(handle: lightgbm_sys::BoosterHandle, num_class: i64) -> LGBMResult<Self> {
+        Ok(Booster{handle, num_class})
     }
 
     /// Create a new Booster model with given Dataset and parameters.
@@ -56,12 +56,12 @@ impl Booster {
             num_iterations = parameter["num_iterations"].as_i64().unwrap();
         }
 
-        // get num_classes
-        let num_classes: i64;
-        if parameter["num_classes"].is_null(){
-            num_classes = 1;
+        // get num_class
+        let num_class: i64;
+        if parameter["num_class"].is_null(){
+            num_class = 1;
         } else {
-            num_classes = parameter["num_classes"].as_i64().unwrap();
+            num_class = parameter["num_class"].as_i64().unwrap();
         }
 
         // exchange params {"x": "y", "z": 1} => "x=y z=1"
@@ -81,7 +81,7 @@ impl Booster {
         for _ in 1..num_iterations {
             lgbm_call!(lightgbm_sys::LGBM_BoosterUpdateOneIter(handle, &mut is_finished))?;
         }
-        Ok(Booster::new(handle, num_classes)?)
+        Ok(Booster::new(handle, num_class)?)
     }
 
     /// Predict results for given data.
@@ -97,7 +97,7 @@ impl Booster {
         let feature_length = data[0].len();
         let params = CString::new("").unwrap();
         let mut out_length: c_long = 0;
-        let out_result: Vec<f64> = vec![Default::default(); data.len() * self.num_classes as usize];
+        let out_result: Vec<f64> = vec![Default::default(); data.len() * self.num_class as usize];
         let flat_data = data.into_iter().flatten().collect::<Vec<_>>();
 
         lgbm_call!(
