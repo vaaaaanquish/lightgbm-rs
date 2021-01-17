@@ -2,26 +2,49 @@
 LightGBM Rust binding
 
 
-Now: Done is better than perfect.
+# Require
+
+You need an environment that can build LightGBM.
+
+```
+# linux
+apt install -y cmake libclang-dev libc++-dev gcc-multilib
+```
+
+Please see below for details.
+https://lightgbm.readthedocs.io/en/latest/Installation-Guide.html
 
 
-# develop
+
+# Usage
+
+Please see `./examples`.
+
+|example|link|
+|---|---|
+|binary classification|[link](https://github.com/vaaaaanquish/lightgbm-rs/blob/main/examples/binary_classification/src/main.rs)|
+|multiclass classification|[link](https://github.com/vaaaaanquish/lightgbm-rs/blob/main/examples/multiclass_classification/src/main.rs)|
+|regression|[link](https://github.com/vaaaaanquish/lightgbm-rs/blob/main/examples/regression/src/main.rs)|
+
+
+
+# Develop
 
 ```
 git clone --recursive https://github.com/vaaaaanquish/lightgbm-rs
 ```
 
 ```
-docker pull rust:1.49.0
-docker run -it -v $PWD:/app rust bash
+docker build -t lgbmrs .
+docker run -it -v $PWD:/app lgbmrs bash
+
+# cargo build
 ```
 
-```
-apt update
-apt install -y cmake libclang-dev libc++-dev gcc-multilib
-cd app
-cargo build
-```
 
-LightGBM C API doc
-https://lightgbm.readthedocs.io/en/latest/C-API.html
+# Thanks
+
+Much reference was made to implementation and documentation. Thanks.
+
+- [microsoft/LightGBM](https://github.com/microsoft/LightGBM)
+- [davechallis/rust-xgboost](https://github.com/davechallis/rust-xgboost)
