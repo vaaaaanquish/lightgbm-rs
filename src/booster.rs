@@ -164,8 +164,8 @@ mod tests {
         let feature = vec![vec![0.5; 28], vec![0.0; 28], vec![0.9; 28]];
         let result = bst.predict(feature).unwrap();
         let mut normalized_result = Vec::new();
-        for r in result[0]{
-            if r > 0.5{
+        for r in &result[0]{
+            if r > &0.5{
                 normalized_result.push(1);
             } else {
                 normalized_result.push(0);
