@@ -23,22 +23,11 @@ fn main() {
     }
 
     // CMake
-    let dst;
-    if target.contains("apple") {
-        dst = Config::new(&lgbm_root)
-            .profile("Release")
-            .uses_cxx11()
-            .define("BUILD_STATIC_LIB", "ON")
-            .define("USE_OPENMP", "OFF")
-            .build();
-    } else{
-        dst = Config::new(&lgbm_root)
+    let dst = Config::new(&lgbm_root)
             .profile("Release")
             .uses_cxx11()
             .define("BUILD_STATIC_LIB", "ON")
             .build();
-    }
-
 
     // bindgen build
     let bindings = bindgen::Builder::default()
@@ -55,6 +44,7 @@ fn main() {
     // link to appropriate C++ lib
     if target.contains("apple") {
         println!("cargo:rustc-link-lib=c++");
+        println!("cargo:rustc-link-lib=dylib=omp");
     } else {
         println!("cargo:rustc-link-lib=stdc++");
         println!("cargo:rustc-link-lib=dylib=gomp");
