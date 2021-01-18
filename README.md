@@ -9,6 +9,9 @@ You need an environment that can build LightGBM.
 ```
 # linux
 apt install -y cmake libclang-dev libc++-dev gcc-multilib
+
+# OS X
+brew install cmake
 ```
 
 Please see below for details.

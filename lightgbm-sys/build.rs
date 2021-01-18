@@ -8,6 +8,7 @@ use std::path::{Path, PathBuf};
 
 
 fn main() {
+    let target = env::var("TARGET").unwrap();
     let out_dir = env::var("OUT_DIR").unwrap();
     let lgbm_root = Path::new(&out_dir).join("lightgbm");
 
@@ -22,11 +23,22 @@ fn main() {
     }
 
     // CMake
-    let dst = Config::new(&lgbm_root)
-        .profile("Release")
-        .uses_cxx11()
-        .define("BUILD_STATIC_LIB", "ON")
-        .build();
+    let dst;
+    if target.contains("apple") {
+        dst = Config::new(&lgbm_root)
+            .profile("Release")
+            .uses_cxx11()
+            .define("BUILD_STATIC_LIB", "ON")
+            .define("USE_OPENMP", "OFF")
+            .build();
+    } else{
+        dst = Config::new(&lgbm_root)
+            .profile("Release")
+            .uses_cxx11()
+            .define("BUILD_STATIC_LIB", "ON")
+            .build();
+    }
+
 
     // bindgen build
     let bindings = bindgen::Builder::default()
@@ -40,9 +52,15 @@ fn main() {
         .write_to_file(out_path.join("bindings.rs"))
         .expect("Couldn't write bindings.");
 
+    // link to appropriate C++ lib
+    if target.contains("apple") {
+        println!("cargo:rustc-link-lib=c++");
+    } else {
+        println!("cargo:rustc-link-lib=stdc++");
+        println!("cargo:rustc-link-lib=dylib=gomp");
+    }
+
     println!("cargo:rustc-link-search={}", out_path.join("lib").display());
-    println!("cargo:rustc-link-lib=dylib=gomp");
-    println!("cargo:rustc-link-lib=stdc++");
     println!("cargo:rustc-link-search=native={}", dst.display());
     println!("cargo:rustc-link-lib=static=_lightgbm");
 }
