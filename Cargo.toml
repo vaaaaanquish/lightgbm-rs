@@ -9,7 +9,7 @@ readme = "README.md"
 exclude = [".gitignore", ".gitmodules", "examples", "lightgbm-sys"]
 
 [dependencies]
-lightgbm-sys = "0.1.0"
+lightgbm-sys = "0.2.0"
 libc = "0.2.81"
 derive_builder = "0.5.1"
 serde_json = "1.0.59"
