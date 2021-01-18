@@ -15,13 +15,36 @@ brew install cmake libomp
 ```
 
 Please see below for details.
-https://lightgbm.readthedocs.io/en/latest/Installation-Guide.html
+- [LightGBM Installation-Guide](https://lightgbm.readthedocs.io/en/latest/Installation-Guide.html)
 
 
 
 # Usage
 
-Please see `./examples`.
+Example LightGBM train.
+```
+extern crate serde_json;
+use lightgbm::{Dataset, Booster};
+use serde_json::json;
+
+let data = vec![vec![1.0, 0.1, 0.2, 0.1],
+               vec![0.7, 0.4, 0.5, 0.1],
+               vec![0.9, 0.8, 0.5, 0.1],
+               vec![0.2, 0.2, 0.8, 0.7],
+               vec![0.1, 0.7, 1.0, 0.9]];
+let label = vec![0.0, 0.0, 0.0, 1.0, 1.0];
+let dataset = Dataset::from_mat(data, label).unwrap();
+let params = json!{
+   {
+        "num_iterations": 3,
+        "objective": "binary",
+        "metric": "auc"
+    }
+};
+let bst = Booster::train(dataset, &params).unwrap();
+```
+
+Please see the `./examples` for details.
 
 |example|link|
 |---|---|
