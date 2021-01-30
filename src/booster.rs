@@ -1,4 +1,4 @@
-use libc::{c_char, c_double, c_void, c_long};
+use libc::{c_char, c_double, c_void, c_long, c_longlong};
 use std::ffi::CString;
 use std;
 
@@ -107,7 +107,7 @@ impl Booster {
         let data_length = data.len();
         let feature_length = data[0].len();
         let params = CString::new("").unwrap();
-        let mut out_length: c_long = 0;
+        let mut out_length: c_longlong = 0;
         let flat_data = data.into_iter().flatten().collect::<Vec<_>>();
 
         // get num_class
