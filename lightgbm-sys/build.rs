@@ -55,11 +55,10 @@ fn main() {
         .expect("Couldn't write bindings.");
 
     // link to appropriate C++ lib
-    println!("target: {}", &target);
     if target.contains("apple") {
         println!("cargo:rustc-link-lib=c++");
         println!("cargo:rustc-link-lib=dylib=omp");
-    } else if target.contains("linux") {
+    } else {
         println!("cargo:rustc-link-lib=stdc++");
         println!("cargo:rustc-link-lib=dylib=gomp");
     }
