@@ -17,7 +17,7 @@ jobs:
     - uses: actions/checkout@v2
       with:
           submodules: true
-          token: {{ secrets.ACTIONS_TOKEN }}
+          token: ${{ secrets.ACTIONS_TOKEN }}
     - name: Setup Rust
       uses: actions-rs/toolchain@v1
       with:
