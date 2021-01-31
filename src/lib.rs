@@ -1,5 +1,5 @@
-extern crate lightgbm_sys;
 extern crate libc;
+extern crate lightgbm_sys;
 extern crate serde_json;
 
 #[macro_use]
@@ -9,9 +9,8 @@ macro_rules! lgbm_call {
     };
 }
 
-
 mod error;
-pub use error::{LGBMError,LGBMResult};
+pub use error::{LGBMError, LGBMResult};
 
 mod dataset;
 pub use dataset::Dataset;
