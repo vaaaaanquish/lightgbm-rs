@@ -5,12 +5,12 @@ extern crate serde_json;
 #[macro_use]
 macro_rules! lgbm_call {
     ($x:expr) => {
-        LGBMError::check_return_value(unsafe { $x })
+        Error::check_return_value(unsafe { $x })
     };
 }
 
 mod error;
-pub use error::{LGBMError, LGBMResult};
+pub use error::{Error, Result};
 
 mod dataset;
 pub use dataset::Dataset;

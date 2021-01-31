@@ -3,7 +3,7 @@ use lightgbm_sys;
 use std;
 use std::ffi::CString;
 
-use super::{LGBMError, LGBMResult};
+use super::{Error, Result};
 
 /// Dataset used throughout LightGBM for training.
 ///
@@ -56,7 +56,7 @@ impl Dataset {
     /// let label = vec![0.0, 0.0, 0.0, 1.0, 1.0];
     /// let dataset = Dataset::from_mat(data, label).unwrap();
     /// ```
-    pub fn from_mat(data: Vec<Vec<f64>>, label: Vec<f32>) -> LGBMResult<Self> {
+    pub fn from_mat(data: Vec<Vec<f64>>, label: Vec<f32>) -> Result<Self> {
         let data_length = data.len();
         let feature_length = data[0].len();
         let params = CString::new("").unwrap();
@@ -106,7 +106,7 @@ impl Dataset {
     ///
     /// let dataset = Dataset::from_file("lightgbm-sys/lightgbm/examples/binary_classification/binary.train".to_string());
     /// ```
-    pub fn from_file(file_path: String) -> LGBMResult<Self> {
+    pub fn from_file(file_path: String) -> Result<Self> {
         let file_path_str = CString::new(file_path).unwrap();
         let params = CString::new("").unwrap();
         let mut handle = std::ptr::null_mut();
@@ -131,7 +131,7 @@ impl Drop for Dataset {
 #[cfg(test)]
 mod tests {
     use super::*;
-    fn read_train_file() -> LGBMResult<Dataset> {
+    fn read_train_file() -> Result<Dataset> {
         Dataset::from_file(
             "lightgbm-sys/lightgbm/examples/binary_classification/binary.train".to_string(),
         )

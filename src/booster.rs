@@ -6,7 +6,7 @@ use serde_json::Value;
 
 use lightgbm_sys;
 
-use super::{Dataset, LGBMError, LGBMResult};
+use super::{Dataset, Error, Result};
 
 /// Core model in LightGBM, containing functions for training, evaluating and predicting.
 pub struct Booster {
@@ -19,7 +19,7 @@ impl Booster {
     }
 
     /// Init from model file.
-    pub fn from_file(filename: String) -> LGBMResult<Self> {
+    pub fn from_file(filename: String) -> Result<Self> {
         let filename_str = CString::new(filename).unwrap();
         let mut out_num_iterations = 0;
         let mut handle = std::ptr::null_mut();
@@ -56,7 +56,7 @@ impl Booster {
     /// };
     /// let bst = Booster::train(dataset, &params).unwrap();
     /// ```
-    pub fn train(dataset: Dataset, parameter: &Value) -> LGBMResult<Self> {
+    pub fn train(dataset: Dataset, parameter: &Value) -> Result<Self> {
         // get num_iterations
         let num_iterations: i64 = if parameter["num_iterations"].is_null() {
             100
@@ -104,7 +104,7 @@ impl Booster {
     /// ```
     /// let output = vec![vec![1.0, 0.109, 0.433]];
     /// ```
-    pub fn predict(&self, data: Vec<Vec<f64>>) -> LGBMResult<Vec<Vec<f64>>> {
+    pub fn predict(&self, data: Vec<Vec<f64>>) -> Result<Vec<Vec<f64>>> {
         let data_length = data.len();
         let feature_length = data[0].len();
         let params = CString::new("").unwrap();
@@ -174,7 +174,7 @@ mod tests {
     use std::fs;
     use std::path::Path;
 
-    fn read_train_file() -> LGBMResult<Dataset> {
+    fn read_train_file() -> Result<Dataset> {
         Dataset::from_file(
             "lightgbm-sys/lightgbm/examples/binary_classification/binary.train".to_string(),
         )
