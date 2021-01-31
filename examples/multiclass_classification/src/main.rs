@@ -70,7 +70,7 @@ fn main() -> std::io::Result<()> {
     for (label, pred) in zip(&test_labels, &result) {
         let argmax_pred = argmax(&pred);
         if *label == argmax_pred as f32 {
-            tp = tp + 1;
+            tp += 1;
         }
         println!("{}, {}, {:?}", label, argmax_pred, &pred);
     }
