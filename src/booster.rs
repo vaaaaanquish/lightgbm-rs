@@ -58,12 +58,11 @@ impl Booster {
     /// ```
     pub fn train(dataset: Dataset, parameter: &Value) -> LGBMResult<Self> {
         // get num_iterations
-        let num_iterations: i64;
-        if parameter["num_iterations"].is_null() {
-            num_iterations = 100;
+        let num_iterations: i64 = if parameter["num_iterations"].is_null() {
+            100
         } else {
-            num_iterations = parameter["num_iterations"].as_i64().unwrap();
-        }
+            parameter["num_iterations"].as_i64().unwrap()
+        };
 
         // exchange params {"x": "y", "z": 1} => "x=y z=1"
         let params_string = parameter
@@ -137,15 +136,14 @@ impl Booster {
         ))?;
 
         // reshape for multiclass [1,2,3,4,5,6] -> [[1,2,3], [4,5,6]]  # 3 class
-        let reshaped_output;
-        if num_class > 1 {
-            reshaped_output = out_result
+        let reshaped_output = if num_class > 1 {
+            out_result
                 .chunks(num_class as usize)
                 .map(|x| x.to_vec())
-                .collect();
+                .collect()
         } else {
-            reshaped_output = vec![out_result];
-        }
+            vec![out_result]
+        };
         Ok(reshaped_output)
     }
 
@@ -198,11 +196,7 @@ mod tests {
         let result = bst.predict(feature).unwrap();
         let mut normalized_result = Vec::new();
         for r in &result[0] {
-            if r > &0.5 {
-                normalized_result.push(1);
-            } else {
-                normalized_result.push(0);
-            }
+            normalized_result.push(if r > &0.5 { 1 } else { 0 });
         }
         assert_eq!(normalized_result, vec![0, 0, 1]);
     }
