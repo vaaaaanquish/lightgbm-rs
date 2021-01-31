@@ -12,11 +12,11 @@ jobs:
           - stable
           - beta
           - nightly
-        os: [macos-latest]
+        os: [ubuntu-latest, macos-latest]
     steps:
     - uses: actions/checkout@v2
       with:
-          submodules: true
+          submodules: recursive
           token: ${{ secrets.ACTIONS_TOKEN }}
     - name: Setup Rust
       uses: actions-rs/toolchain@v1
