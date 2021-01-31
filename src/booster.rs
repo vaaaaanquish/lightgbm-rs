@@ -14,8 +14,8 @@ pub struct Booster {
 }
 
 impl Booster {
-    fn new(handle: lightgbm_sys::BoosterHandle) -> LGBMResult<Self> {
-        Ok(Booster { handle })
+    fn new(handle: lightgbm_sys::BoosterHandle) -> Self {
+        Booster { handle }
     }
 
     /// Init from model file.
@@ -27,9 +27,9 @@ impl Booster {
             filename_str.as_ptr() as *const c_char,
             &mut out_num_iterations,
             &mut handle
-        ))
-        .unwrap();
-        Ok(Booster::new(handle)?)
+        ))?;
+
+        Ok(Booster::new(handle))
     }
 
     /// Create a new Booster model with given Dataset and parameters.
@@ -89,7 +89,7 @@ impl Booster {
                 &mut is_finished
             ))?;
         }
-        Ok(Booster::new(handle)?)
+        Ok(Booster::new(handle))
     }
 
     /// Predict results for given data.
