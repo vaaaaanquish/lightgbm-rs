@@ -70,7 +70,7 @@ impl Dataset {
             lightgbm_sys::C_API_DTYPE_FLOAT64 as i32,
             data_length as i32,
             feature_length as i32,
-            1 as i32,
+            1_i32,
             params.as_ptr() as *const c_char,
             reference,
             &mut handle

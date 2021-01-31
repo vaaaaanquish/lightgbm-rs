@@ -127,10 +127,10 @@ impl Booster {
             lightgbm_sys::C_API_DTYPE_FLOAT64 as i32,
             data_length as i32,
             feature_length as i32,
-            1 as i32,
-            0 as i32,
-            0 as i32,
-            -1 as i32,
+            1_i32,
+            0_i32,
+            0_i32,
+            -1_i32,
             params.as_ptr() as *const c_char,
             &mut out_length,
             out_result.as_ptr() as *mut c_double
@@ -154,9 +154,9 @@ impl Booster {
         let filename_str = CString::new(filename).unwrap();
         lgbm_call!(lightgbm_sys::LGBM_BoosterSaveModel(
             self.handle,
-            0 as i32,
-            -1 as i32,
-            0 as i32,
+            0_i32,
+            -1_i32,
+            0_i32,
             filename_str.as_ptr() as *const c_char
         ))
         .unwrap();
