@@ -14,10 +14,14 @@ apt install -y cmake libclang-dev libc++-dev gcc-multilib
 brew install cmake libomp
 ```
 
+On Windows
+
+1. Install CMake and VS Build Tools.
+1. Install LLVM and set an environment variable `LIBCLANG_PATH` to PATH_TO_LLVM_BINARY (example: `C:\Program Files\LLVM\bin`)
+
 Please see below for details.
+
 - [LightGBM Installation-Guide](https://lightgbm.readthedocs.io/en/latest/Installation-Guide.html)
-
-
 
 # Usage
 

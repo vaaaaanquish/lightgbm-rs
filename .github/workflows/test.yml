@@ -16,7 +16,7 @@ jobs:
     steps:
     - uses: actions/checkout@v2
       with:
-          submodules: true
+          submodules: recursive
     - name: Setup Rust
       uses: actions-rs/toolchain@v1
       with:
