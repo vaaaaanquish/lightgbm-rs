@@ -148,7 +148,7 @@ impl Booster {
     }
 
     /// Save model to file.
-    pub fn save_file(&self, filename: String) {
+    pub fn save_file(&self, filename: String) -> Result<()> {
         let filename_str = CString::new(filename).unwrap();
         lgbm_call!(lightgbm_sys::LGBM_BoosterSaveModel(
             self.handle,
@@ -156,8 +156,8 @@ impl Booster {
             -1_i32,
             0_i32,
             filename_str.as_ptr() as *const c_char
-        ))
-        .unwrap();
+        ))?;
+        Ok(())
     }
 }
 
@@ -213,7 +213,10 @@ mod tests {
             }
         };
         let bst = Booster::train(dataset, &params).unwrap();
-        bst.save_file("./test/test_save_file.output".to_string());
+        assert_eq!(
+            bst.save_file("./test/test_save_file.output".to_string()),
+            Ok(())
+        );
         assert!(Path::new("./test/test_save_file.output").exists());
         let _ = fs::remove_file("./test/test_save_file.output");
     }
