@@ -48,9 +48,9 @@ fn main() -> std::io::Result<()> {
 
     let mut tp = 0;
     for (label, pred) in zip(&test_labels, &result[0]) {
-        if label == &(1 as f32) && pred > &(0.5 as f64) {
+        if *label == 1_f32 && *pred > 0.5_f64 {
             tp = tp + 1;
-        } else if label == &(0 as f32) && pred <= &(0.5 as f64) {
+        } else if *label == 0_f32 && *pred <= 0.5_f64 {
             tp = tp + 1;
         }
         println!("{}, {}", label, pred)
