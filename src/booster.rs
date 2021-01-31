@@ -19,7 +19,7 @@ impl Booster {
     }
 
     /// Init from model file.
-    pub fn from_file(filename: String) -> Result<Self> {
+    pub fn from_file(filename: &str) -> Result<Self> {
         let filename_str = CString::new(filename).unwrap();
         let mut out_num_iterations = 0;
         let mut handle = std::ptr::null_mut();
@@ -148,7 +148,7 @@ impl Booster {
     }
 
     /// Save model to file.
-    pub fn save_file(&self, filename: String) -> Result<()> {
+    pub fn save_file(&self, filename: &str) -> Result<()> {
         let filename_str = CString::new(filename).unwrap();
         lgbm_call!(lightgbm_sys::LGBM_BoosterSaveModel(
             self.handle,
@@ -175,9 +175,7 @@ mod tests {
     use std::path::Path;
 
     fn read_train_file() -> Result<Dataset> {
-        Dataset::from_file(
-            "lightgbm-sys/lightgbm/examples/binary_classification/binary.train".to_string(),
-        )
+        Dataset::from_file(&"lightgbm-sys/lightgbm/examples/binary_classification/binary.train")
     }
 
     #[test]
@@ -213,16 +211,13 @@ mod tests {
             }
         };
         let bst = Booster::train(dataset, &params).unwrap();
-        assert_eq!(
-            bst.save_file("./test/test_save_file.output".to_string()),
-            Ok(())
-        );
+        assert_eq!(bst.save_file(&"./test/test_save_file.output"), Ok(()));
         assert!(Path::new("./test/test_save_file.output").exists());
         let _ = fs::remove_file("./test/test_save_file.output");
     }
 
     #[test]
     fn from_file() {
-        let _ = Booster::from_file("./test/test_from_file.input".to_string());
+        let _ = Booster::from_file(&"./test/test_from_file.input");
     }
 }

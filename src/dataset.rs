@@ -28,9 +28,7 @@ use super::{Error, Result};
 /// ```
 /// use lightgbm::Dataset;
 ///
-/// let dataset = Dataset::from_file(
-///     "lightgbm-sys/lightgbm/examples/binary_classification/binary.train"
-///     .to_string()).unwrap();
+/// let dataset = Dataset::from_file(&"lightgbm-sys/lightgbm/examples/binary_classification/binary.train").unwrap();
 /// ```
 pub struct Dataset {
     pub(super) handle: lightgbm_sys::DatasetHandle,
@@ -104,9 +102,9 @@ impl Dataset {
     /// ```
     /// use lightgbm::Dataset;
     ///
-    /// let dataset = Dataset::from_file("lightgbm-sys/lightgbm/examples/binary_classification/binary.train".to_string());
+    /// let dataset = Dataset::from_file(&"lightgbm-sys/lightgbm/examples/binary_classification/binary.train");
     /// ```
-    pub fn from_file(file_path: String) -> Result<Self> {
+    pub fn from_file(file_path: &str) -> Result<Self> {
         let file_path_str = CString::new(file_path).unwrap();
         let params = CString::new("").unwrap();
         let mut handle = std::ptr::null_mut();
@@ -132,9 +130,7 @@ impl Drop for Dataset {
 mod tests {
     use super::*;
     fn read_train_file() -> Result<Dataset> {
-        Dataset::from_file(
-            "lightgbm-sys/lightgbm/examples/binary_classification/binary.train".to_string(),
-        )
+        Dataset::from_file(&"lightgbm-sys/lightgbm/examples/binary_classification/binary.train")
     }
 
     #[test]
