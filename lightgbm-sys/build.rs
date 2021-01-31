@@ -58,7 +58,7 @@ fn main() {
     if target.contains("apple") {
         println!("cargo:rustc-link-lib=c++");
         println!("cargo:rustc-link-lib=dylib=omp");
-    } else {
+    } else if target.contains("linux") {
         println!("cargo:rustc-link-lib=stdc++");
         println!("cargo:rustc-link-lib=dylib=gomp");
     }
