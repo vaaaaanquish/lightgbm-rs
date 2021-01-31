@@ -7,11 +7,19 @@ jobs:
     name: Run Clippy
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v1
-      - uses: actions-rs/toolchain@v1
+      - uses: actions/checkout@v2
+        with:
+          submodules: recursive
+      - name: Setup Rust
+        uses: actions-rs/toolchain@v1
         with:
           toolchain: stable
           components: clippy
+      - name: Setup environment
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y cmake libclang-dev libc++-dev gcc-multilib
+          cargo build
       - uses: actions-rs/clippy-check@v1
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
