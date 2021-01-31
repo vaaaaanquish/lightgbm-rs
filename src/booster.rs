@@ -221,11 +221,11 @@ mod tests {
         let bst = Booster::train(dataset, &params).unwrap();
         bst.save_file("./test/test_save_file.output".to_string());
         assert!(Path::new("./test/test_save_file.output").exists());
-        fs::remove_file("./test/test_save_file.output");
+        let _ = fs::remove_file("./test/test_save_file.output");
     }
 
     #[test]
     fn from_file() {
-        let bst = Booster::from_file("./test/test_from_file.input".to_string());
+        let _ = Booster::from_file("./test/test_from_file.input".to_string());
     }
 }
