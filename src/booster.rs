@@ -1,4 +1,4 @@
-use libc::{c_char, c_double, c_long, c_longlong, c_void};
+use libc::{c_char, c_double, c_longlong, c_void};
 use std;
 use std::ffi::CString;
 
@@ -14,8 +14,8 @@ pub struct Booster {
 }
 
 impl Booster {
-    fn new(handle: lightgbm_sys::BoosterHandle) -> LGBMResult<Self> {
-        Ok(Booster { handle })
+    fn new(handle: lightgbm_sys::BoosterHandle) -> Self {
+        Booster { handle }
     }
 
     /// Init from model file.
@@ -27,9 +27,9 @@ impl Booster {
             filename_str.as_ptr() as *const c_char,
             &mut out_num_iterations,
             &mut handle
-        ))
-        .unwrap();
-        Ok(Booster::new(handle)?)
+        ))?;
+
+        Ok(Booster::new(handle))
     }
 
     /// Create a new Booster model with given Dataset and parameters.
@@ -58,12 +58,11 @@ impl Booster {
     /// ```
     pub fn train(dataset: Dataset, parameter: &Value) -> LGBMResult<Self> {
         // get num_iterations
-        let num_iterations: i64;
-        if parameter["num_iterations"].is_null() {
-            num_iterations = 100;
+        let num_iterations: i64 = if parameter["num_iterations"].is_null() {
+            100
         } else {
-            num_iterations = parameter["num_iterations"].as_i64().unwrap();
-        }
+            parameter["num_iterations"].as_i64().unwrap()
+        };
 
         // exchange params {"x": "y", "z": 1} => "x=y z=1"
         let params_string = parameter
@@ -89,7 +88,7 @@ impl Booster {
                 &mut is_finished
             ))?;
         }
-        Ok(Booster::new(handle)?)
+        Ok(Booster::new(handle))
     }
 
     /// Predict results for given data.
@@ -127,25 +126,24 @@ impl Booster {
             lightgbm_sys::C_API_DTYPE_FLOAT64 as i32,
             data_length as i32,
             feature_length as i32,
-            1 as i32,
-            0 as i32,
-            0 as i32,
-            -1 as i32,
+            1_i32,
+            0_i32,
+            0_i32,
+            -1_i32,
             params.as_ptr() as *const c_char,
             &mut out_length,
             out_result.as_ptr() as *mut c_double
         ))?;
 
         // reshape for multiclass [1,2,3,4,5,6] -> [[1,2,3], [4,5,6]]  # 3 class
-        let reshaped_output;
-        if num_class > 1 {
-            reshaped_output = out_result
+        let reshaped_output = if num_class > 1 {
+            out_result
                 .chunks(num_class as usize)
                 .map(|x| x.to_vec())
-                .collect();
+                .collect()
         } else {
-            reshaped_output = vec![out_result];
-        }
+            vec![out_result]
+        };
         Ok(reshaped_output)
     }
 
@@ -154,9 +152,9 @@ impl Booster {
         let filename_str = CString::new(filename).unwrap();
         lgbm_call!(lightgbm_sys::LGBM_BoosterSaveModel(
             self.handle,
-            0 as i32,
-            -1 as i32,
-            0 as i32,
+            0_i32,
+            -1_i32,
+            0_i32,
             filename_str.as_ptr() as *const c_char
         ))
         .unwrap();
@@ -198,11 +196,7 @@ mod tests {
         let result = bst.predict(feature).unwrap();
         let mut normalized_result = Vec::new();
         for r in &result[0] {
-            if r > &0.5 {
-                normalized_result.push(1);
-            } else {
-                normalized_result.push(0);
-            }
+            normalized_result.push(if r > &0.5 { 1 } else { 0 });
         }
         assert_eq!(normalized_result, vec![0, 0, 1]);
     }
@@ -221,11 +215,11 @@ mod tests {
         let bst = Booster::train(dataset, &params).unwrap();
         bst.save_file("./test/test_save_file.output".to_string());
         assert!(Path::new("./test/test_save_file.output").exists());
-        fs::remove_file("./test/test_save_file.output");
+        let _ = fs::remove_file("./test/test_save_file.output");
     }
 
     #[test]
     fn from_file() {
-        let bst = Booster::from_file("./test/test_from_file.input".to_string());
+        let _ = Booster::from_file("./test/test_from_file.input".to_string());
     }
 }

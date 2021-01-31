@@ -1,22 +1,27 @@
-extern crate lightgbm;
 extern crate csv;
-extern crate serde_json;
 extern crate itertools;
-
+extern crate lightgbm;
+extern crate serde_json;
 
 use itertools::zip;
-use lightgbm::{Dataset, Booster};
+use lightgbm::{Booster, Dataset};
 use serde_json::json;
 
-
 fn load_file(file_path: &str) -> (Vec<Vec<f64>>, Vec<f32>) {
-    let rdr = csv::ReaderBuilder::new().has_headers(false).delimiter(b'\t').from_path(file_path);
+    let rdr = csv::ReaderBuilder::new()
+        .has_headers(false)
+        .delimiter(b'\t')
+        .from_path(file_path);
     let mut labels: Vec<f32> = Vec::new();
     let mut features: Vec<Vec<f64>> = Vec::new();
     for result in rdr.unwrap().records() {
         let record = result.unwrap();
         let label = record[0].parse::<f32>().unwrap();
-        let feature: Vec<f64> = record.iter().map(|x| x.parse::<f64>().unwrap()).collect::<Vec<f64>>()[1..].to_vec();
+        let feature: Vec<f64> = record
+            .iter()
+            .map(|x| x.parse::<f64>().unwrap())
+            .collect::<Vec<f64>>()[1..]
+            .to_vec();
         labels.push(label);
         features.push(feature);
     }
@@ -42,11 +47,14 @@ fn argmax<T: PartialOrd>(xs: &[T]) -> usize {
 }
 
 fn main() -> std::io::Result<()> {
-    let (train_features, train_labels) = load_file("../../lightgbm-sys/lightgbm/examples/multiclass_classification/multiclass.train");
-    let (test_features, test_labels) = load_file("../../lightgbm-sys/lightgbm/examples/multiclass_classification/multiclass.test");
+    let (train_features, train_labels) = load_file(
+        "../../lightgbm-sys/lightgbm/examples/multiclass_classification/multiclass.train",
+    );
+    let (test_features, test_labels) =
+        load_file("../../lightgbm-sys/lightgbm/examples/multiclass_classification/multiclass.test");
     let train_dataset = Dataset::from_mat(train_features, train_labels).unwrap();
 
-    let params = json!{
+    let params = json! {
         {
             "num_iterations": 100,
             "objective": "multiclass",
@@ -58,12 +66,11 @@ fn main() -> std::io::Result<()> {
     let booster = Booster::train(train_dataset, &params).unwrap();
     let result = booster.predict(test_features).unwrap();
 
-
     let mut tp = 0;
-    for (label, pred) in zip(&test_labels, &result){
+    for (label, pred) in zip(&test_labels, &result) {
         let argmax_pred = argmax(&pred);
         if *label == argmax_pred as f32 {
-            tp = tp + 1;
+            tp += 1;
         }
         println!("{}, {}, {:?}", label, argmax_pred, &pred);
     }
