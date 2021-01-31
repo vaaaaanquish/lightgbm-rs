@@ -41,9 +41,7 @@ impl LGBMError {
     fn from_lightgbm() -> Self {
         let c_str = unsafe { CStr::from_ptr(lightgbm_sys::LGBM_GetLastError()) };
         let str_slice = c_str.to_str().unwrap();
-        LGBMError {
-            desc: str_slice.to_owned(),
-        }
+        Self::new(str_slice)
     }
 }
 
@@ -65,11 +63,6 @@ mod tests {
         assert_eq!(result, Ok(()));
 
         let result = LGBMError::check_return_value(-1);
-        assert_eq!(
-            result,
-            Err(LGBMError {
-                desc: "Everything is fine".to_owned()
-            })
-        );
+        assert_eq!(result, Err(LGBMError::new("Everything is fine")));
     }
 }
