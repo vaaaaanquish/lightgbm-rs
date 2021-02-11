@@ -53,6 +53,12 @@ fn main() -> std::io::Result<()> {
         }
         println!("{}, {}", label, pred)
     }
-    println!("{} / {}", &tp, result[0].len());
+    println!("feature importance");
+    let feature_name = booster.feature_name().unwrap();
+    let feature_importance = booster.feature_importance().unwrap();
+    for (feature, importance) in zip(&feature_name, &feature_importance) {
+        println!("{}: {}", feature, importance);
+    }
+    println!("result: {} / {}", &tp, result[0].len());
     Ok(())
 }
