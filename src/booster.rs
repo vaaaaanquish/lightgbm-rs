@@ -225,13 +225,30 @@ mod tests {
     use std::fs;
     use std::path::Path;
 
-    fn read_train_file() -> Result<Dataset> {
+    fn _read_train_file() -> Result<Dataset> {
         Dataset::from_file(&"lightgbm-sys/lightgbm/examples/binary_classification/binary.train")
+    }
+
+    fn _train_booster(params: &Value) -> Booster {
+        let dataset = _read_train_file().unwrap();
+        let bst = Booster::train(dataset, &params).unwrap();
+        bst
+    }
+
+    fn _default_params() -> Value {
+        let params = json! {
+            {
+                "num_iterations": 1,
+                "objective": "binary",
+                "metric": "auc",
+                "data_random_seed": 0
+            }
+        };
+        params
     }
 
     #[test]
     fn predict() {
-        let dataset = read_train_file().unwrap();
         let params = json! {
             {
                 "num_iterations": 10,
@@ -240,7 +257,7 @@ mod tests {
                 "data_random_seed": 0
             }
         };
-        let bst = Booster::train(dataset, &params).unwrap();
+        let bst = _train_booster(&params);
         let feature = vec![vec![0.5; 28], vec![0.0; 28], vec![0.9; 28]];
         let result = bst.predict(feature).unwrap();
         let mut normalized_result = Vec::new();
@@ -251,17 +268,34 @@ mod tests {
     }
 
     #[test]
+    fn num_feature(){
+        let params = _default_params();
+        let bst = _train_booster(&params);
+        let num_feature = bst.num_feature().unwrap();
+        assert_eq!(num_feature, 28);
+    }
+
+    #[test]
+    fn feature_importance() {
+        let params = _default_params();
+        let bst = _train_booster(&params);
+        let feature_importance = bst.feature_importance().unwrap();
+        assert_eq!(feature_importance, vec![0.0; 28]);
+    }
+
+    #[test]
+    fn feature_name() {
+        let params = _default_params();
+        let bst = _train_booster(&params);
+        let feature_name = bst.feature_name().unwrap();
+        let target = (0..28).map(|i| format!("Column_{}", i)).collect::<Vec<_>>();
+        assert_eq!(feature_name, target);
+    }
+
+    #[test]
     fn save_file() {
-        let dataset = read_train_file().unwrap();
-        let params = json! {
-            {
-                "num_iterations": 1,
-                "objective": "binary",
-                "metric": "auc",
-                "data_random_seed": 0
-            }
-        };
-        let bst = Booster::train(dataset, &params).unwrap();
+        let params = _default_params();
+        let bst = _train_booster(&params);
         assert_eq!(bst.save_file(&"./test/test_save_file.output"), Ok(()));
         assert!(Path::new("./test/test_save_file.output").exists());
         let _ = fs::remove_file("./test/test_save_file.output");
