@@ -164,7 +164,11 @@ impl Booster {
         let mut num_feature_names = 0;
         let mut out_buffer_len = 0;
         let out_strs = (0..num_feature)
-            .map(|_| CString::new(" ".repeat(feature_name_length)).unwrap().into_raw() as *mut c_char)
+            .map(|_| {
+                CString::new(" ".repeat(feature_name_length))
+                    .unwrap()
+                    .into_raw() as *mut c_char
+            })
             .collect::<Vec<_>>();
         lgbm_call!(lightgbm_sys::LGBM_BoosterGetFeatureNames(
             self.handle,
@@ -174,8 +178,9 @@ impl Booster {
             &mut out_buffer_len,
             out_strs.as_ptr() as *mut *mut c_char
         ))?;
-        let output: Vec<String> = out_strs.into_iter()
-            .map(|s| unsafe{ CString::from_raw(s).into_string().unwrap() })
+        let output: Vec<String> = out_strs
+            .into_iter()
+            .map(|s| unsafe { CString::from_raw(s).into_string().unwrap() })
             .collect();
         Ok(output)
     }
