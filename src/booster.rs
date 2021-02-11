@@ -147,6 +147,52 @@ impl Booster {
         Ok(reshaped_output)
     }
 
+    /// Get Feature Num.
+    pub fn num_feature(&self) -> Result<i32> {
+        let mut out_len = 0;
+        lgbm_call!(lightgbm_sys::LGBM_BoosterGetNumFeature(
+            self.handle,
+            &mut out_len
+        ))?;
+        Ok(out_len)
+    }
+
+    /// Get Feature Names.
+    pub fn feature_name(&self) -> Result<Vec<String>> {
+        let num_feature = self.num_feature().unwrap();
+        let feature_name_length = 32;
+        let mut num_feature_names = 0;
+        let mut out_buffer_len = 0;
+        let out_strs = (0..num_feature)
+            .map(|_| CString::new(" ".repeat(feature_name_length)).unwrap().into_raw() as *mut c_char)
+            .collect::<Vec<_>>();
+        lgbm_call!(lightgbm_sys::LGBM_BoosterGetFeatureNames(
+            self.handle,
+            feature_name_length as i32,
+            &mut num_feature_names,
+            num_feature as u64,
+            &mut out_buffer_len,
+            out_strs.as_ptr() as *mut *mut c_char
+        ))?;
+        let output: Vec<String> = out_strs.into_iter()
+            .map(|s| unsafe{ CString::from_raw(s).into_string().unwrap() })
+            .collect();
+        Ok(output)
+    }
+
+    // Get Feature Importance
+    pub fn feature_importance(&self) -> Result<Vec<f64>> {
+        let num_feature = self.num_feature().unwrap();
+        let out_result: Vec<f64> = vec![Default::default(); num_feature as usize];
+        lgbm_call!(lightgbm_sys::LGBM_BoosterFeatureImportance(
+            self.handle,
+            0_i32,
+            0_i32,
+            out_result.as_ptr() as *mut c_double
+        ))?;
+        Ok(out_result)
+    }
+
     /// Save model to file.
     pub fn save_file(&self, filename: &str) -> Result<()> {
         let filename_str = CString::new(filename).unwrap();
