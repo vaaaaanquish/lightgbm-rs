@@ -268,7 +268,7 @@ mod tests {
     }
 
     #[test]
-    fn num_feature(){
+    fn num_feature() {
         let params = _default_params();
         let bst = _train_booster(&params);
         let num_feature = bst.num_feature().unwrap();
