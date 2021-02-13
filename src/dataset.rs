@@ -37,7 +37,7 @@ pub struct Dataset {
 #[link(name = "c")]
 impl Dataset {
     fn new(handle: lightgbm_sys::DatasetHandle) -> Self {
-        Dataset { handle }
+        Self { handle }
     }
 
     /// Create a new `Dataset` from dense array in row-major order.
@@ -82,7 +82,7 @@ impl Dataset {
             lightgbm_sys::C_API_DTYPE_FLOAT32 as i32
         ))?;
 
-        Ok(Dataset::new(handle))
+        Ok(Self::new(handle))
     }
 
     /// Create a new `Dataset` from file.
@@ -116,7 +116,7 @@ impl Dataset {
             &mut handle
         ))?;
 
-        Ok(Dataset::new(handle))
+        Ok(Self::new(handle))
     }
 }
 
