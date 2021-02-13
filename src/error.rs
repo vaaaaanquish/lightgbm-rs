@@ -17,7 +17,7 @@ pub struct Error {
 
 impl Error {
     pub(crate) fn new<S: Into<String>>(desc: S) -> Self {
-        Error { desc: desc.into() }
+        Self { desc: desc.into() }
     }
 
     /// Check the return value from an LightGBM FFI call, and return the last error message on error.
@@ -28,11 +28,8 @@ impl Error {
     pub(crate) fn check_return_value(ret_val: i32) -> Result<()> {
         match ret_val {
             0 => Ok(()),
-            -1 => Err(Error::from_lightgbm()),
-            _ => panic!(format!(
-                "unexpected return value '{}', expected 0 or -1",
-                ret_val
-            )),
+            -1 => Err(Self::from_lightgbm()),
+            _ => panic!("unexpected return value '{}', expected 0 or -1", ret_val),
         }
     }
 
