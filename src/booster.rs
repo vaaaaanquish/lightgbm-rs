@@ -6,11 +6,11 @@ use serde_json::Value;
 
 use lightgbm_sys;
 
-use super::{Dataset, Error, Result};
+use crate::{Dataset, Error, Result};
 
 /// Core model in LightGBM, containing functions for training, evaluating and predicting.
 pub struct Booster {
-    pub(super) handle: lightgbm_sys::BoosterHandle,
+    handle: lightgbm_sys::BoosterHandle,
 }
 
 impl Booster {

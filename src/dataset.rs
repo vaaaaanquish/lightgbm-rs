@@ -3,7 +3,7 @@ use lightgbm_sys;
 use std;
 use std::ffi::CString;
 
-use super::{Error, Result};
+use crate::{Error, Result};
 
 /// Dataset used throughout LightGBM for training.
 ///
@@ -31,7 +31,7 @@ use super::{Error, Result};
 /// let dataset = Dataset::from_file(&"lightgbm-sys/lightgbm/examples/binary_classification/binary.train").unwrap();
 /// ```
 pub struct Dataset {
-    pub(super) handle: lightgbm_sys::DatasetHandle,
+    pub(crate) handle: lightgbm_sys::DatasetHandle,
 }
 
 #[link(name = "c")]
