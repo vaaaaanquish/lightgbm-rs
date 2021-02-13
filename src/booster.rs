@@ -159,7 +159,7 @@ impl Booster {
 
     /// Get Feature Names.
     pub fn feature_name(&self) -> Result<Vec<String>> {
-        let num_feature = self.num_feature().unwrap();
+        let num_feature = self.num_feature()?;
         let feature_name_length = 32;
         let mut num_feature_names = 0;
         let mut out_buffer_len = 0;
@@ -187,7 +187,7 @@ impl Booster {
 
     // Get Feature Importance
     pub fn feature_importance(&self) -> Result<Vec<f64>> {
-        let num_feature = self.num_feature().unwrap();
+        let num_feature = self.num_feature()?;
         let out_result: Vec<f64> = vec![Default::default(); num_feature as usize];
         lgbm_call!(lightgbm_sys::LGBM_BoosterFeatureImportance(
             self.handle,
