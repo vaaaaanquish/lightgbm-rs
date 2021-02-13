@@ -29,10 +29,7 @@ impl Error {
         match ret_val {
             0 => Ok(()),
             -1 => Err(Error::from_lightgbm()),
-            _ => panic!(format!(
-                "unexpected return value '{}', expected 0 or -1",
-                ret_val
-            )),
+            _ => panic!("unexpected return value '{}', expected 0 or -1", ret_val),
         }
     }
 
