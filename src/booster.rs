@@ -231,8 +231,7 @@ mod tests {
 
     fn _train_booster(params: &Value) -> Booster {
         let dataset = _read_train_file().unwrap();
-        let bst = Booster::train(dataset, &params).unwrap();
-        bst
+        Booster::train(dataset, &params).unwrap()
     }
 
     fn _default_params() -> Value {
