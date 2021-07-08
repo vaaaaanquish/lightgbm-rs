@@ -8,14 +8,29 @@ use lightgbm_sys;
 
 use crate::{Dataset, Error, Result};
 
+
+fn load_pandas_categorical(model_string: &str) -> Option<Vec<Vec<Value>>> {
+    let pandas_key = "pandas_categorical:";
+    let idx = model_string.rfind(pandas_key);
+
+    if let Some(idx) = idx {
+        let idx = idx + pandas_key.len();
+        let value = model_string[idx..].trim();
+        serde_json::from_str(value).ok()
+    } else {
+        None
+    }
+}
+
 /// Core model in LightGBM, containing functions for training, evaluating and predicting.
 pub struct Booster {
     handle: lightgbm_sys::BoosterHandle,
+    pub pandas_categorical: Option<Vec<Vec<Value>>>,
 }
 
 impl Booster {
-    fn new(handle: lightgbm_sys::BoosterHandle) -> Self {
-        Booster { handle }
+    fn new(handle: lightgbm_sys::BoosterHandle, pandas_categorical: Option<Vec<Vec<Value>>>) -> Self {
+        Booster { handle, pandas_categorical }
     }
 
     /// Init from model file.
@@ -28,8 +43,24 @@ impl Booster {
             &mut out_num_iterations,
             &mut handle
         ))?;
+        // pandas_categorical is not implemented
+        Ok(Booster::new(handle, None))
+    }
 
-        Ok(Booster::new(handle))
+    /// Init from model string.
+    pub fn from_string(model_string: &str) -> Result<Self> {
+        let model_c_str = CString::new(model_string).unwrap();
+        let mut out_num_iterations = 0;
+        let mut handle = std::ptr::null_mut();
+        lgbm_call!(lightgbm_sys::LGBM_BoosterLoadModelFromString(
+            model_c_str.as_ptr() as *const c_char,
+            &mut out_num_iterations,
+            &mut handle
+        ))?;
+
+        let pandas_categorical = load_pandas_categorical(model_string);
+
+        Ok(Booster::new(handle, pandas_categorical))
     }
 
     /// Create a new Booster model with given Dataset and parameters.
@@ -88,7 +119,8 @@ impl Booster {
                 &mut is_finished
             ))?;
         }
-        Ok(Booster::new(handle))
+        // pandas_categorical is not implemented
+        Ok(Booster::new(handle, None))
     }
 
     /// Predict results for given data.
@@ -104,12 +136,13 @@ impl Booster {
     /// ```
     /// let output = vec![vec![1.0, 0.109, 0.433]];
     /// ```
-    pub fn predict(&self, data: Vec<Vec<f64>>) -> Result<Vec<Vec<f64>>> {
+    pub fn predict(&self, data: Vec<Vec<f64>>, predict_type: Option<i32>) -> Result<Vec<Vec<f64>>> {
         let data_length = data.len();
         let feature_length = data[0].len();
         let params = CString::new("").unwrap();
         let mut out_length: c_longlong = 0;
         let flat_data = data.into_iter().flatten().collect::<Vec<_>>();
+        let predict_type = predict_type.unwrap_or(0_i32);
 
         // get num_class
         let mut num_class = 0;
@@ -127,7 +160,7 @@ impl Booster {
             data_length as i32,
             feature_length as i32,
             1_i32,
-            0_i32,
+            predict_type,
             0_i32,
             -1_i32,
             params.as_ptr() as *const c_char,
@@ -258,7 +291,7 @@ mod tests {
         };
         let bst = _train_booster(&params);
         let feature = vec![vec![0.5; 28], vec![0.0; 28], vec![0.9; 28]];
-        let result = bst.predict(feature).unwrap();
+        let result = bst.predict(feature, None).unwrap();
         let mut normalized_result = Vec::new();
         for r in &result[0] {
             normalized_result.push(if r > &0.5 { 1 } else { 0 });
@@ -303,5 +336,13 @@ mod tests {
     #[test]
     fn from_file() {
         let _ = Booster::from_file(&"./test/test_from_file.input");
+    }
+
+    #[test]
+    fn test_load_pandas_categorical() {
+        let model_string = "[num_gpu: 1]\n\nend of parameters\n\npandas_categorical:[[1, 2], [\"a\"], [\"c\", \"cc\"], [\"b\", \"bb\"]]\n";
+        let pandas_categorical = load_pandas_categorical(model_string).unwrap();
+        assert_eq!(pandas_categorical.get(0).unwrap().iter().map(|x| x.as_i64().unwrap()).collect::<Vec<i64>>(), vec![1, 2]);
+        assert_eq!(pandas_categorical.get(1).unwrap().iter().map(|x| x.as_str().unwrap()).collect::<Vec<&str>>(), vec!["a"]);
     }
 }
