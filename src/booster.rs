@@ -205,9 +205,12 @@ impl Booster {
                     .into_raw() as *mut c_char
             })
             .collect::<Vec<_>>();
+        println!("{:?}", out_strs);
         lgbm_call!(lightgbm_sys::LGBM_BoosterGetFeatureNames(
             self.handle,
-            feature_name_length as i32,
+            // feature_name_length as i32,
+            // &mut num_feature_names,
+            num_feature as i32,
             &mut num_feature_names,
             num_feature as u64,
             &mut out_buffer_len,
