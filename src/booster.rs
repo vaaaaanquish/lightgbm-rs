@@ -196,7 +196,7 @@ impl Booster {
     pub fn feature_name(&self) -> Result<Vec<String>> {
         let num_feature = self.num_feature()?;
         let feature_name_length = 32;
-        let mut num_feature_names = 0;
+        let mut num_feature_names = 32;
         let mut out_buffer_len = 0;
         let out_strs = (0..num_feature)
             .map(|_| {
