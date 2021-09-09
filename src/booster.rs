@@ -195,9 +195,11 @@ impl Booster {
     /// Get Feature Names.
     pub fn feature_name(&self) -> Result<Vec<String>> {
         let num_feature = self.num_feature()?;
-        let feature_name_length = 255;
+        let feature_name_length = 0;
         let mut num_feature_names = 0;
         let mut out_buffer_len = 0;
+        let reserved_string_buffer_size = 255;
+        let mut required_string_buffer_size = 0;
         let out_strs = (0..num_feature)
             .map(|_| {
                 CString::new(" ".repeat(feature_name_length))
@@ -212,8 +214,10 @@ impl Booster {
             // &mut num_feature_names,
             num_feature as i32,
             &mut num_feature_names,
-            num_feature as u64,
-            &mut out_buffer_len,
+            // num_feature as u64,
+            // &mut out_buffer_len,
+            reserved_string_buffer_size,
+            &mut required_string_buffer_size,
             out_strs.as_ptr() as *mut *mut c_char
         ))?;
         let output: Vec<String> = out_strs
