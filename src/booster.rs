@@ -214,16 +214,17 @@ impl Booster {
             &mut required_string_buffer_size,
             out_strs.as_ptr() as *mut *mut c_char
         ))?;
-        let actual_string_buffer_size = required_string_buffer_size;
-        if actual_string_buffer_size > reserved_string_buffer_size {
-            let actual_string_buffer_size_usize= actual_string_buffer_size as usize;
-            let out_strs = (0..num_feature)
+        let actual_string_buffer_size = required_string_buffer_size.clone();
+        let actual_string_buffer_size_usize= actual_string_buffer_size.clone() as usize;
+        let out_strs = if actual_string_buffer_size > reserved_string_buffer_size {
+                (0..num_feature)
                 .map(|_| {
                     CString::new(" ".repeat(actual_string_buffer_size_usize))
                         .unwrap()
                         .into_raw() as *mut c_char
                 })
-                .collect::<Vec<_>>();
+                .collect::<Vec<_>>()}  else {out_strs};
+        if actual_string_buffer_size > reserved_string_buffer_size {
                 lgbm_call!(lightgbm_sys::LGBM_BoosterGetFeatureNames(
                     self.handle,
                     num_feature as i32,
@@ -232,7 +233,7 @@ impl Booster {
                     &mut required_string_buffer_size,
                     out_strs.as_ptr() as *mut *mut c_char
                 ))?;
-        }
+        };
         let output: Vec<String> = out_strs
             .into_iter()
             .map(|s| unsafe { CString::from_raw(s).into_string().unwrap() })
