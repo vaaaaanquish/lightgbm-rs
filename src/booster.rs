@@ -199,10 +199,11 @@ impl Booster {
         let mut num_feature_names = 0;
         let mut out_buffer_len = 0;
         let reserved_string_buffer_size = 255;
+        let reserved_string_buffer_size2: u64 = 255;
         let mut required_string_buffer_size = 0;
         let out_strs = (0..num_feature)
             .map(|_| {
-                CString::new(" ".repeat(feature_name_length))
+                CString::new(" ".repeat(reserved_string_buffer_size))
                     .unwrap()
                     .into_raw() as *mut c_char
             })
@@ -216,7 +217,7 @@ impl Booster {
             &mut num_feature_names,
             // num_feature as u64,
             // &mut out_buffer_len,
-            reserved_string_buffer_size,
+            reserved_string_buffer_size2 as u64,
             &mut required_string_buffer_size,
             out_strs.as_ptr() as *mut *mut c_char
         ))?;
