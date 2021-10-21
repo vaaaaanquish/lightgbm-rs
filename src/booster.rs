@@ -12,6 +12,7 @@ pub const PREDICT_TYPE_NORMAL: i32 = lightgbm_sys::C_API_PREDICT_NORMAL as i32;
 pub const PREDICT_TYPE_LEAF_INDEX: i32 = lightgbm_sys::C_API_PREDICT_LEAF_INDEX as i32;
 
 
+/// Ported function: https://github.com/microsoft/LightGBM/blob/90342e929b1801fb2a20b410e2db5a69a9063b48/python-package/lightgbm/basic.py#L579
 fn load_pandas_categorical(model_string: &str) -> Option<Vec<Vec<Value>>> {
     let pandas_key = "pandas_categorical:";
     let idx = model_string.rfind(pandas_key);
