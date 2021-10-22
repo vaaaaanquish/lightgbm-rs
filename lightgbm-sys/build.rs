@@ -40,6 +40,7 @@ fn main() {
         .profile("Release")
         .uses_cxx11()
         .define("BUILD_STATIC_LIB", "ON")
+        .define("USE_OPENMP", "OFF")
         .build();
 
     // bindgen build
