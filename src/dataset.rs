@@ -3,6 +3,9 @@ use lightgbm_sys;
 use std;
 use std::ffi::CString;
 
+#[cfg(feature = "dataframe")]
+use polars::prelude::*;
+
 use crate::{Error, Result};
 
 /// Dataset used throughout LightGBM for training.
@@ -118,6 +121,76 @@ impl Dataset {
 
         Ok(Self::new(handle))
     }
+
+    /// Create a new `Dataset` from a polars DataFrame.
+    ///
+    /// Note: the feature ```dataframe``` is required for this method
+    ///
+    /// Example
+    ///
+    #[cfg_attr(
+        feature = "dataframe",
+        doc = r##"
+    extern crate polars;
+
+    use lightgbm::Dataset;
+    use polars::prelude::*;
+    use polars::df;
+
+    let df: DataFrame = df![
+            "feature_1" => [1.0, 0.7, 0.9, 0.2, 0.1],
+            "feature_2" => [0.1, 0.4, 0.8, 0.2, 0.7],
+            "feature_3" => [0.2, 0.5, 0.5, 0.1, 0.1],
+            "feature_4" => [0.1, 0.1, 0.1, 0.7, 0.9],
+            "label" => [0.0, 0.0, 0.0, 1.0, 1.0]
+        ].unwrap();
+    let dataset = Dataset::from_dataframe(df, String::from("label")).unwrap();
+    "##
+    )]
+    #[cfg(feature = "dataframe")]
+    pub fn from_dataframe(mut dataframe: DataFrame, label_column: String) -> Result<Self> {
+        let label_col_name = label_column.as_str();
+
+        let (m, n) = dataframe.shape();
+
+        let label_series = &dataframe.select_series(label_col_name)?[0].cast::<Float32Type>()?;
+
+        if label_series.null_count() != 0 {
+            panic!("Cannot create a dataset with null values, encountered nulls when creating the label array")
+        }
+
+        dataframe.drop_in_place(label_col_name)?;
+
+        let mut label_values = Vec::with_capacity(m);
+
+        let label_values_ca = label_series.unpack::<Float32Type>()?;
+
+        label_values_ca
+            .into_no_null_iter()
+            .enumerate()
+            .for_each(|(_row_idx, val)| {
+                label_values.push(val);
+            });
+
+        let mut feature_values = Vec::with_capacity(m);
+        for _i in 0..m {
+            feature_values.push(Vec::with_capacity(n));
+        }
+
+        for (_col_idx, series) in dataframe.get_columns().iter().enumerate() {
+            if series.null_count() != 0 {
+                panic!("Cannot create a dataset with null values, encountered nulls when creating the features array")
+            }
+
+            let series = series.cast::<Float64Type>()?;
+            let ca = series.unpack::<Float64Type>()?;
+
+            ca.into_no_null_iter()
+                .enumerate()
+                .for_each(|(row_idx, val)| feature_values[row_idx].push(val));
+        }
+        Self::from_mat(feature_values, label_values)
+    }
 }
 
 impl Drop for Dataset {
@@ -150,5 +223,22 @@ mod tests {
         let label = vec![0.0, 0.0, 0.0, 1.0, 1.0];
         let dataset = Dataset::from_mat(data, label);
         assert!(dataset.is_ok());
+    }
+
+    #[cfg(feature = "dataframe")]
+    #[test]
+    fn from_dataframe() {
+        use polars::df;
+        let df: DataFrame = df![
+            "feature_1" => [1.0, 0.7, 0.9, 0.2, 0.1],
+            "feature_2" => [0.1, 0.4, 0.8, 0.2, 0.7],
+            "feature_3" => [0.2, 0.5, 0.5, 0.1, 0.1],
+            "feature_4" => [0.1, 0.1, 0.1, 0.7, 0.9],
+            "label" => [0.0, 0.0, 0.0, 1.0, 1.0]
+        ]
+        .unwrap();
+
+        let df_dataset = Dataset::from_dataframe(df, String::from("label"));
+        assert!(df_dataset.is_ok());
     }
 }

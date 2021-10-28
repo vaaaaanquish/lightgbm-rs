@@ -2,6 +2,9 @@ extern crate libc;
 extern crate lightgbm_sys;
 extern crate serde_json;
 
+#[cfg(feature = "dataframe")]
+extern crate polars;
+
 #[macro_use]
 macro_rules! lgbm_call {
     ($x:expr) => {
