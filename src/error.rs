@@ -2,9 +2,12 @@
 
 use std::error;
 use std::ffi::CStr;
-use std::fmt::{self, Display};
+use std::fmt::{self, Debug, Display};
 
 use lightgbm_sys;
+
+#[cfg(feature = "dataframe")]
+use polars::prelude::*;
 
 /// Convenience return type for most operations which can return an `LightGBM`.
 pub type Result<T> = std::result::Result<T, Error>;
@@ -46,6 +49,15 @@ impl error::Error for Error {}
 impl Display for Error {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         write!(f, "LightGBM error: {}", &self.desc)
+    }
+}
+
+#[cfg(feature = "dataframe")]
+impl From<PolarsError> for Error {
+    fn from(pe: PolarsError) -> Self {
+        Self {
+            desc: pe.to_string(),
+        }
     }
 }
 

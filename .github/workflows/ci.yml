@@ -27,15 +27,15 @@ jobs:
         run: |
           brew install cmake
           brew install libomp
-          cargo build
+          cargo build --all-features
       - name: Build for ubuntu
         if: matrix.os == 'ubuntu-latest'
         run: |
           sudo apt-get update
           sudo apt-get install -y cmake libclang-dev libc++-dev gcc-multilib
-          cargo build
+          cargo build --all-features
       - name: Run tests
-        run: cargo test
+        run: cargo test --all-features
         continue-on-error: ${{ matrix.rust == 'nightly' }}
       - name: Run Clippy
         uses: actions-rs/clippy-check@v1

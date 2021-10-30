@@ -13,3 +13,9 @@ lightgbm-sys = { path = "lightgbm-sys", version = "0.3.0" }
 libc = "0.2.81"
 derive_builder = "0.5.1"
 serde_json = "1.0.59"
+polars = {version = "0.16.0", optional = true}
+
+
+[features]
+default = []
+dataframe = ["polars"]
