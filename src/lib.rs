@@ -19,4 +19,4 @@ mod dataset;
 pub use dataset::Dataset;
 
 mod booster;
-pub use booster::Booster;
+pub use booster::{Booster, PREDICT_TYPE_NORMAL, PREDICT_TYPE_LEAF_INDEX};

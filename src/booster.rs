@@ -8,14 +8,33 @@ use lightgbm_sys;
 
 use crate::{Dataset, Error, Result};
 
+pub const PREDICT_TYPE_NORMAL: i32 = lightgbm_sys::C_API_PREDICT_NORMAL as i32;
+pub const PREDICT_TYPE_LEAF_INDEX: i32 = lightgbm_sys::C_API_PREDICT_LEAF_INDEX as i32;
+
+
+/// Ported function: https://github.com/microsoft/LightGBM/blob/90342e929b1801fb2a20b410e2db5a69a9063b48/python-package/lightgbm/basic.py#L579
+fn load_pandas_categorical(model_string: &str) -> Option<Vec<Vec<Value>>> {
+    let pandas_key = "pandas_categorical:";
+    let idx = model_string.rfind(pandas_key);
+
+    if let Some(idx) = idx {
+        let idx = idx + pandas_key.len();
+        let value = model_string[idx..].trim();
+        serde_json::from_str(value).ok()
+    } else {
+        None
+    }
+}
+
 /// Core model in LightGBM, containing functions for training, evaluating and predicting.
 pub struct Booster {
     handle: lightgbm_sys::BoosterHandle,
+    pub pandas_categorical: Option<Vec<Vec<Value>>>,
 }
 
 impl Booster {
-    fn new(handle: lightgbm_sys::BoosterHandle) -> Self {
-        Booster { handle }
+    fn new(handle: lightgbm_sys::BoosterHandle, pandas_categorical: Option<Vec<Vec<Value>>>) -> Self {
+        Booster { handle, pandas_categorical }
     }
 
     /// Init from model file.
@@ -28,8 +47,24 @@ impl Booster {
             &mut out_num_iterations,
             &mut handle
         ))?;
+        // pandas_categorical is not implemented
+        Ok(Booster::new(handle, None))
+    }
 
-        Ok(Booster::new(handle))
+    /// Init from model string.
+    pub fn from_string(model_string: &str) -> Result<Self> {
+        let model_c_str = CString::new(model_string).unwrap();
+        let mut out_num_iterations = 0;
+        let mut handle = std::ptr::null_mut();
+        lgbm_call!(lightgbm_sys::LGBM_BoosterLoadModelFromString(
+            model_c_str.as_ptr() as *const c_char,
+            &mut out_num_iterations,
+            &mut handle
+        ))?;
+
+        let pandas_categorical = load_pandas_categorical(model_string);
+
+        Ok(Booster::new(handle, pandas_categorical))
     }
 
     /// Create a new Booster model with given Dataset and parameters.
@@ -88,7 +123,8 @@ impl Booster {
                 &mut is_finished
             ))?;
         }
-        Ok(Booster::new(handle))
+        // pandas_categorical is not implemented
+        Ok(Booster::new(handle, None))
     }
 
     /// Predict results for given data.
@@ -104,7 +140,7 @@ impl Booster {
     /// ```
     /// let output = vec![vec![1.0, 0.109, 0.433]];
     /// ```
-    pub fn predict(&self, data: Vec<Vec<f64>>) -> Result<Vec<Vec<f64>>> {
+    pub fn predict(&self, data: Vec<Vec<f64>>, predict_type: i32) -> Result<Vec<Vec<f64>>> {
         let data_length = data.len();
         let feature_length = data[0].len();
         let params = CString::new("").unwrap();
@@ -127,7 +163,7 @@ impl Booster {
             data_length as i32,
             feature_length as i32,
             1_i32,
-            0_i32,
+            predict_type,
             0_i32,
             -1_i32,
             params.as_ptr() as *const c_char,
@@ -160,24 +196,45 @@ impl Booster {
     /// Get Feature Names.
     pub fn feature_name(&self) -> Result<Vec<String>> {
         let num_feature = self.num_feature()?;
-        let feature_name_length = 32;
-        let mut num_feature_names = 0;
-        let mut out_buffer_len = 0;
+        let mut tmp_out_len = 0;
+        let reserved_string_buffer_size: u64 = 255;
+        let reserved_string_buffer_size_usize = 255;
+        let mut required_string_buffer_size = 0;
         let out_strs = (0..num_feature)
             .map(|_| {
-                CString::new(" ".repeat(feature_name_length))
+                CString::new(" ".repeat(reserved_string_buffer_size_usize))
                     .unwrap()
                     .into_raw() as *mut c_char
             })
             .collect::<Vec<_>>();
         lgbm_call!(lightgbm_sys::LGBM_BoosterGetFeatureNames(
             self.handle,
-            feature_name_length as i32,
-            &mut num_feature_names,
-            num_feature as u64,
-            &mut out_buffer_len,
+            num_feature as i32,
+            &mut tmp_out_len,
+            reserved_string_buffer_size as u64,
+            &mut required_string_buffer_size,
             out_strs.as_ptr() as *mut *mut c_char
         ))?;
+        let actual_string_buffer_size = required_string_buffer_size.clone();
+        let actual_string_buffer_size_usize= actual_string_buffer_size.clone() as usize;
+        let out_strs = if actual_string_buffer_size > reserved_string_buffer_size {
+                (0..num_feature)
+                .map(|_| {
+                    CString::new(" ".repeat(actual_string_buffer_size_usize))
+                        .unwrap()
+                        .into_raw() as *mut c_char
+                })
+                .collect::<Vec<_>>()}  else {out_strs};
+        if actual_string_buffer_size > reserved_string_buffer_size {
+                lgbm_call!(lightgbm_sys::LGBM_BoosterGetFeatureNames(
+                    self.handle,
+                    num_feature as i32,
+                    &mut tmp_out_len,
+                    actual_string_buffer_size as u64,
+                    &mut required_string_buffer_size,
+                    out_strs.as_ptr() as *mut *mut c_char
+                ))?;
+        };
         let output: Vec<String> = out_strs
             .into_iter()
             .map(|s| unsafe { CString::from_raw(s).into_string().unwrap() })
@@ -258,7 +315,7 @@ mod tests {
         };
         let bst = _train_booster(&params);
         let feature = vec![vec![0.5; 28], vec![0.0; 28], vec![0.9; 28]];
-        let result = bst.predict(feature).unwrap();
+        let result = bst.predict(feature, PREDICT_TYPE_NORMAL).unwrap();
         let mut normalized_result = Vec::new();
         for r in &result[0] {
             normalized_result.push(if r > &0.5 { 1 } else { 0 });
@@ -303,5 +360,13 @@ mod tests {
     #[test]
     fn from_file() {
         let _ = Booster::from_file(&"./test/test_from_file.input");
+    }
+
+    #[test]
+    fn test_load_pandas_categorical() {
+        let model_string = "[num_gpu: 1]\n\nend of parameters\n\npandas_categorical:[[1, 2], [\"a\"], [\"c\", \"cc\"], [\"b\", \"bb\"]]\n";
+        let pandas_categorical = load_pandas_categorical(model_string).unwrap();
+        assert_eq!(pandas_categorical.get(0).unwrap().iter().map(|x| x.as_i64().unwrap()).collect::<Vec<i64>>(), vec![1, 2]);
+        assert_eq!(pandas_categorical.get(1).unwrap().iter().map(|x| x.as_str().unwrap()).collect::<Vec<&str>>(), vec!["a"]);
     }
 }

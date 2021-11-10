@@ -1,6 +1,8 @@
 # lightgbm-rs
 LightGBM Rust binding
 
+git clone --recursive https://github.com/aarki/lightgbm-rs.git
+
 
 # Require
 
