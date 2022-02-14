@@ -1,5 +1,6 @@
 use libc::{c_char, c_double, c_longlong, c_void};
 use std;
+use std::convert::TryInto;
 use std::ffi::CString;
 
 use serde_json::Value;
@@ -210,6 +211,24 @@ impl Booster {
         ))?;
         Ok(())
     }
+
+    /// Returns the size the model would have if saved using `save_file`, without having to write the file
+    pub fn save_file_size(&self) -> Result<u64> {
+        let mut out_size = 0_i64;
+        lgbm_call!(lightgbm_sys::LGBM_BoosterSaveModelToString(
+            self.handle,
+            0_i32,
+            -1_i32,
+            0_i32,
+            0,
+            &mut out_size as *mut _,
+            std::ptr::null_mut() as *mut i8
+        ))?;
+        // subtract 1 because the file doesn't contain the final null character
+        (out_size - 1)
+            .try_into()
+            .map_err(|_| Error::new("size negative"))
+    }
 }
 
 impl Drop for Booster {
@@ -298,6 +317,18 @@ mod tests {
         assert_eq!(bst.save_file(&"./test/test_save_file.output"), Ok(()));
         assert!(Path::new("./test/test_save_file.output").exists());
         let _ = fs::remove_file("./test/test_save_file.output");
+    }
+
+    #[test]
+    fn save_file_size() {
+        let params = _default_params();
+        let bst = _train_booster(&params);
+        let filename = "./test/test_save_file_size.output";
+        assert_eq!(bst.save_file(filename), Ok(()));
+        let file_size = Path::new(filename).metadata().unwrap().len();
+        assert!(file_size > 0);
+        assert_eq!(bst.save_file_size(), Ok(file_size));
+        let _ = fs::remove_file(filename);
     }
 
     #[test]
