@@ -1,6 +1,7 @@
 use libc::{c_char, c_void};
 use lightgbm_sys;
 use std;
+use std::convert::TryInto;
 use std::ffi::CString;
 
 #[cfg(feature = "dataframe")]
@@ -65,6 +66,16 @@ impl Dataset {
         let reference = std::ptr::null_mut(); // not use
         let mut handle = std::ptr::null_mut();
         let flat_data = data.into_iter().flatten().collect::<Vec<_>>();
+
+        if data_length > i32::MAX as usize || feature_length > i32::MAX as usize {
+            return Err(Error::new(format!(
+                "received dataset of size {}x{}, but at most {}x{} is supported",
+                data_length,
+                feature_length,
+                i32::MAX,
+                i32::MAX
+            )));
+        }
 
         lgbm_call!(lightgbm_sys::LGBM_DatasetCreateFromMat(
             flat_data.as_ptr() as *const c_void,
@@ -191,6 +202,49 @@ impl Dataset {
         }
         Self::from_mat(feature_values, label_values)
     }
+
+    pub fn get_data_len(&self) -> Result<usize> {
+        let mut result = 0_i32;
+        lgbm_call!(lightgbm_sys::LGBM_DatasetGetNumData(
+            self.handle,
+            &mut result
+        ))?;
+        result
+            .try_into()
+            .map_err(|_| Error::new("dataset length negative"))
+    }
+
+    pub fn get_feature_count(&self) -> Result<usize> {
+        let mut result = 0_i32;
+        lgbm_call!(lightgbm_sys::LGBM_DatasetGetNumFeature(
+            self.handle,
+            &mut result
+        ))?;
+        result
+            .try_into()
+            .map_err(|_| Error::new("feature count negative"))
+    }
+
+    pub fn set_weights(&mut self, weights: Vec<f32>) -> Result<()> {
+        let dataset_len = self.get_data_len()?;
+        if dataset_len != weights.len() {
+            return Err(Error::new(format!(
+                "got {} weights, but dataset has {} records",
+                weights.len(),
+                dataset_len
+            )));
+        }
+        let field_name = CString::new("weight").unwrap();
+        let len = weights.len();
+        lgbm_call!(lightgbm_sys::LGBM_DatasetSetField(
+            self.handle,
+            field_name.as_ptr() as *const c_char,
+            weights.as_ptr() as *const c_void,
+            len as i32,
+            lightgbm_sys::C_API_DTYPE_FLOAT32 as i32,
+        ))?;
+        Ok(())
+    }
 }
 
 impl Drop for Dataset {
@@ -240,5 +294,52 @@ mod tests {
 
         let df_dataset = Dataset::from_dataframe(df, String::from("label"));
         assert!(df_dataset.is_ok());
+    }
+
+    #[test]
+    fn get_dataset_properties() {
+        let data = vec![
+            vec![1.0, 0.1, 0.2, 0.1],
+            vec![0.7, 0.4, 0.5, 0.1],
+            vec![0.9, 0.8, 0.5, 0.1],
+            vec![0.2, 0.2, 0.8, 0.7],
+            vec![0.1, 0.7, 1.0, 0.9],
+        ];
+        let label = vec![0.0, 0.0, 0.0, 1.0, 1.0];
+        let dataset = Dataset::from_mat(data, label).unwrap();
+        assert_eq!(dataset.get_data_len(), Ok(5));
+        assert_eq!(dataset.get_feature_count(), Ok(4));
+    }
+
+    #[test]
+    fn set_weights() {
+        let data = vec![
+            vec![1.0, 0.1, 0.2, 0.1],
+            vec![0.7, 0.4, 0.5, 0.1],
+            vec![0.9, 0.8, 0.5, 0.1],
+            vec![0.2, 0.2, 0.8, 0.7],
+            vec![0.1, 0.7, 1.0, 0.9],
+        ];
+        let label = vec![0.0, 0.0, 0.0, 1.0, 1.0];
+        let mut dataset = Dataset::from_mat(data, label).unwrap();
+        let weights = vec![0.5, 1.0, 2.0, 0.5, 0.5];
+        dataset.set_weights(weights).unwrap();
+    }
+
+    #[test]
+    fn set_weights_wrong_len() {
+        let data = vec![
+            vec![1.0, 0.1, 0.2, 0.1],
+            vec![0.7, 0.4, 0.5, 0.1],
+            vec![0.9, 0.8, 0.5, 0.1],
+            vec![0.2, 0.2, 0.8, 0.7],
+            vec![0.1, 0.7, 1.0, 0.9],
+        ];
+        let label = vec![0.0, 0.0, 0.0, 1.0, 1.0];
+        let mut dataset = Dataset::from_mat(data, label).unwrap();
+        let weights_short = vec![0.5, 1.0, 2.0, 0.5];
+        let weights_long = vec![0.5, 1.0, 2.0, 0.5, 0.1, 0.1];
+        assert!(dataset.set_weights(weights_short).is_err());
+        assert!(dataset.set_weights(weights_long).is_err());
     }
 }
