@@ -88,6 +88,38 @@ impl Dataset {
         Ok(Self::new(handle))
     }
 
+    /// Assign weigths to records in a dataset
+    /// 
+    /// Example
+    /// ```
+    ///
+    /// use lightgbm::Dataset;
+    /// let data = vec![vec![1.0, 0.1, 0.2, 0.1],
+    ///                vec![0.7, 0.4, 0.5, 0.1],
+    ///                vec![0.9, 0.8, 0.5, 0.1],
+    ///                vec![0.2, 0.2, 0.8, 0.7],
+    ///                vec![0.1, 0.7, 1.0, 0.9]];
+    /// let label = vec![0.0, 0.0, 0.0, 1.0, 1.0];
+    /// let weights = vec![1., 1., 1., 2., 2.,];
+    /// let mut dataset = Dataset::from_mat(data, label).unwrap();
+    /// dataset.assign_weights(weights);
+
+    pub fn assign_weights(&mut self, weights: Vec<f32>) -> Result<()> {
+        let handle = self.handle;
+        let weights_length = weights.len();
+        let weight_str = CString::new("weight").unwrap();
+    
+        lgbm_call!(lightgbm_sys::LGBM_DatasetSetField(
+            handle,
+            weight_str.as_ptr() as *const c_char,
+            weights.as_ptr() as *const c_void,
+            weights_length as i32,
+            lightgbm_sys::C_API_DTYPE_FLOAT32 as i32
+        ))?;
+    
+        Ok(())
+    }
+
     /// Create a new `Dataset` from file.
     ///
     /// file is `tsv`.
