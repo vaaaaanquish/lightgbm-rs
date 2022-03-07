@@ -89,7 +89,6 @@ impl Dataset {
     }
 
     /// Assign weigths to records in a dataset
-    /// 
     /// Example
     /// ```
     ///
@@ -108,7 +107,6 @@ impl Dataset {
         let handle = self.handle;
         let weights_length = weights.len();
         let weight_str = CString::new("weight").unwrap();
-    
         lgbm_call!(lightgbm_sys::LGBM_DatasetSetField(
             handle,
             weight_str.as_ptr() as *const c_char,
@@ -116,7 +114,6 @@ impl Dataset {
             weights_length as i32,
             lightgbm_sys::C_API_DTYPE_FLOAT32 as i32
         ))?;
-    
         Ok(())
     }
 
