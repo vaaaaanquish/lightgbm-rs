@@ -172,10 +172,10 @@ impl Booster {
             .collect::<Vec<_>>();
         lgbm_call!(lightgbm_sys::LGBM_BoosterGetFeatureNames(
             self.handle,
-            num_feature as i32, 
-            &mut num_feature_names, 
-            feature_name_length as u64, 
-            &mut out_buffer_len,//
+            num_feature as i32,
+            &mut num_feature_names,
+            feature_name_length as u64,
+            &mut out_buffer_len,
             out_strs.as_ptr() as *mut *mut c_char
         ))?;
         let output: Vec<String> = out_strs
