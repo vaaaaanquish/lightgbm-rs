@@ -1,0 +1,3 @@
+[submodule "lightgbm-upstream"]
+	path = lightgbm-sys/lightgbm
+	url = https://github.com/microsoft/LightGBM/
