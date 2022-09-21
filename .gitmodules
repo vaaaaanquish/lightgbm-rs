@@ -1,3 +1,0 @@
-[submodule "lightgbm-sys/lightgbm"]
-	path = lightgbm-sys/lightgbm
-	url = https://github.com/vaaaaanquish/LightGBM.git
