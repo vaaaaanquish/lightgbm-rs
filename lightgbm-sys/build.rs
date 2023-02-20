@@ -39,6 +39,7 @@ fn main() {
     let dst = Config::new(&lgbm_root)
         .profile("Release")
         .uses_cxx11()
+        .cxxflag("-std=c++11")
         .define("BUILD_STATIC_LIB", "ON")
         .build();
 
