@@ -13,5 +13,5 @@ exclude = ["README.md", ".gitlab-ci.yml", ".hgeol", ".gitignore", ".appveyor.yml
 libc = "0.2.81"
 
 [build-dependencies]
-bindgen = "0.56.0"
+bindgen = "0.64.0"
 cmake = "0.1"

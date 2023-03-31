@@ -1,5 +1,6 @@
 use libc::{c_char, c_double, c_longlong, c_void};
 use std;
+use std::convert::TryInto;
 use std::ffi::CString;
 
 use serde_json::Value;
@@ -174,7 +175,7 @@ impl Booster {
             self.handle,
             feature_name_length as i32,
             &mut num_feature_names,
-            num_feature as u64,
+            num_feature.try_into().unwrap(),
             &mut out_buffer_len,
             out_strs.as_ptr() as *mut *mut c_char
         ))?;
