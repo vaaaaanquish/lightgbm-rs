@@ -37,7 +37,6 @@ pub struct Dataset {
     pub(crate) handle: lightgbm_sys::DatasetHandle,
 }
 
-#[link(name = "c")]
 impl Dataset {
     fn new(handle: lightgbm_sys::DatasetHandle) -> Self {
         Self { handle }
@@ -153,13 +152,13 @@ impl Dataset {
 
         let (m, n) = dataframe.shape();
 
-        let label_series = &dataframe.select_series(label_col_name)?[0].cast::<Float32Type>()?;
+        let label_series = &dataframe.select_series([label_col_name])?[0].cast(&DataType::Float32)?;
 
         if label_series.null_count() != 0 {
             panic!("Cannot create a dataset with null values, encountered nulls when creating the label array")
         }
 
-        dataframe.drop_in_place(label_col_name)?;
+        let _ = dataframe.drop_in_place(label_col_name)?;
 
         let mut label_values = Vec::with_capacity(m);
 
@@ -182,7 +181,7 @@ impl Dataset {
                 panic!("Cannot create a dataset with null values, encountered nulls when creating the features array")
             }
 
-            let series = series.cast::<Float64Type>()?;
+            let series = series.cast(&DataType::Float64)?;
             let ca = series.unpack::<Float64Type>()?;
 
             ca.into_no_null_iter()
