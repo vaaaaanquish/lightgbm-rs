@@ -1,6 +1,6 @@
 [package]
 name = "lightgbm"
-version = "0.2.3"
+version = "0.2.4"
 authors = ["vaaaaanquish <6syun9@gmail.com>"]
 license = "MIT"
 repository = "https://github.com/vaaaaanquish/LightGBM"
@@ -9,7 +9,7 @@ readme = "README.md"
 exclude = [".gitignore", ".gitmodules", "examples", "lightgbm-sys"]
 
 [dependencies]
-lightgbm-sys = { path = "lightgbm-sys", version = "0.3.0" }
+lightgbm-sys = { path = "lightgbm-sys", version = "0.3.1" }
 libc = "0.2.81"
 derive_builder = "0.12"
 serde_json = "1"

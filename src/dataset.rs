@@ -202,7 +202,7 @@ impl Drop for Dataset {
 mod tests {
     use super::*;
     fn read_train_file() -> Result<Dataset> {
-        Dataset::from_file(&"lightgbm-sys/lightgbm/examples/binary_classification/binary.train")
+        Dataset::from_file("lightgbm-sys/lightgbm/examples/binary_classification/binary.train")
     }
 
     #[test]

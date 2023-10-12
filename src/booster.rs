@@ -226,12 +226,12 @@ mod tests {
     use std::path::Path;
 
     fn _read_train_file() -> Result<Dataset> {
-        Dataset::from_file(&"lightgbm-sys/lightgbm/examples/binary_classification/binary.train")
+        Dataset::from_file("lightgbm-sys/lightgbm/examples/binary_classification/binary.train")
     }
 
     fn _train_booster(params: &Value) -> Booster {
         let dataset = _read_train_file().unwrap();
-        Booster::train(dataset, &params).unwrap()
+        Booster::train(dataset, params).unwrap()
     }
 
     fn _default_params() -> Value {
@@ -295,13 +295,13 @@ mod tests {
     fn save_file() {
         let params = _default_params();
         let bst = _train_booster(&params);
-        assert_eq!(bst.save_file(&"./test/test_save_file.output"), Ok(()));
+        assert_eq!(bst.save_file("./test/test_save_file.output"), Ok(()));
         assert!(Path::new("./test/test_save_file.output").exists());
         let _ = fs::remove_file("./test/test_save_file.output");
     }
 
     #[test]
     fn from_file() {
-        let _ = Booster::from_file(&"./test/test_from_file.input");
+        let _ = Booster::from_file("./test/test_from_file.input");
     }
 }
