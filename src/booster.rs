@@ -18,6 +18,20 @@ impl Booster {
         Booster { handle }
     }
 
+    /// Initialize model from bytes.
+    pub fn from_bytes(bytes: &[u8]) -> Result<Self> {
+        let booster_str = CString::new(bytes).unwrap();
+        let mut out_num_iteration = 0;
+        let mut handle = std::ptr::null_mut();
+        lgbm_call!(lightgbm_sys::LGBM_BoosterLoadModelFromString(
+            booster_str.as_ptr().cast(),
+            &mut out_num_iteration,
+            &mut handle
+        ))?;
+
+        Ok(Booster::new(handle))
+    }
+
     /// Init from model file.
     pub fn from_file(filename: &str) -> Result<Self> {
         let filename_str = CString::new(filename).unwrap();
