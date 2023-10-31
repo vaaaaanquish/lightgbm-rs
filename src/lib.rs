@@ -5,7 +5,6 @@ extern crate serde_json;
 #[cfg(feature = "dataframe")]
 extern crate polars;
 
-#[macro_use]
 macro_rules! lgbm_call {
     ($x:expr) => {
         Error::check_return_value(unsafe { $x })
